@@ -1,0 +1,4 @@
+interface:
+  display_name: "MCP Tool"
+  short_description: "Spring Boot MCP tool guidance"
+  default_prompt: "Use $mcp-tool when adding or debugging MCP tools in the Spring Boot application."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Spring Boot"
+  short_description: "Spring Boot enterprise app guidance"
+  default_prompt: "Use $spring-boot to build, review, test, or secure a Spring Boot application."

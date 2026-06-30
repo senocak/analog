@@ -1,0 +1,4 @@
+interface:
+  display_name: "Unit Testing"
+  short_description: "JUnit Mockito unit testing guidance"
+  default_prompt: "Use $unit-testing to write fast JUnit 5 and Mockito unit tests in this project."

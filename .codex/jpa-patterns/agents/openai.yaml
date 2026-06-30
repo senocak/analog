@@ -1,0 +1,4 @@
+interface:
+  display_name: "JPA Patterns"
+  short_description: "JPA and Hibernate performance patterns"
+  default_prompt: "Use $jpa-patterns when working with JPA relationships, transactions, fetching, or query performance."

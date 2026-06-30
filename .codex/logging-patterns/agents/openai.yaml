@@ -1,0 +1,4 @@
+interface:
+  display_name: "Logging Patterns"
+  short_description: "Java structured logging guidance"
+  default_prompt: "Use $logging-patterns to add structured Java logging, tracing, MDC, or log analysis guidance."

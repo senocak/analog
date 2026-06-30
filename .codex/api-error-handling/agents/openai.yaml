@@ -1,0 +1,4 @@
+interface:
+  display_name: "API Error Handling"
+  short_description: "Project REST error handling patterns"
+  default_prompt: "Use $api-error-handling when adding endpoints, response codes, or consistent REST error responses."

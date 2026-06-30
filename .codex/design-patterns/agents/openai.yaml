@@ -1,0 +1,4 @@
+interface:
+  display_name: "Design Patterns"
+  short_description: "Java design pattern implementation"
+  default_prompt: "Use $design-patterns to choose or implement Java design patterns for extensible code."

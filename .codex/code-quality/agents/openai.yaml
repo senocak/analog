@@ -1,0 +1,4 @@
+interface:
+  display_name: "Code Quality"
+  short_description: "Java code review and refactoring"
+  default_prompt: "Use $code-quality to review Java code for clean design, API contracts, null safety, and performance."

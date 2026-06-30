@@ -1,0 +1,4 @@
+interface:
+  display_name: "Testcontainers Oracle"
+  short_description: "Oracle Testcontainers test guidance"
+  default_prompt: "Use $testcontainers-oracle when writing or fixing Oracle-backed Spring integration tests."

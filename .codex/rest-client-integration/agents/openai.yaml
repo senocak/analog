@@ -1,0 +1,4 @@
+interface:
+  display_name: "REST Client Integration"
+  short_description: "Spring RestClient integration rules"
+  default_prompt: "Use $rest-client-integration when adding outbound HTTP calls with Spring RestClient."

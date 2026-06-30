@@ -1,0 +1,4 @@
+interface:
+  display_name: "Config Properties"
+  short_description: "Typed Spring configuration guidance"
+  default_prompt: "Use $config-properties when adding or debugging typed Spring configuration properties."

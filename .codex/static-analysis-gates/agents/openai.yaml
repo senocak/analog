@@ -1,0 +1,4 @@
+interface:
+  display_name: "Static Analysis Gates"
+  short_description: "Checkstyle SpotBugs JaCoCo gates"
+  default_prompt: "Use $static-analysis-gates before commits or when Maven static analysis gates fail."
