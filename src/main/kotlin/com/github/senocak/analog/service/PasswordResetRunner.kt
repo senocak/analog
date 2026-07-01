@@ -1,5 +1,6 @@
 package com.github.senocak.analog.service
 
+import com.github.senocak.analog.domain.User
 import com.github.senocak.analog.repository.UserRepository
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
@@ -14,18 +15,19 @@ class PasswordResetRunner(
     private val encoder: BCryptPasswordEncoder,
 ) : ApplicationRunner {
     override fun run(args: ApplicationArguments) {
-        if (!args.sourceArgs.firstOrNull().equals("reset-password")) return
-        val email = args.nonOptionArgs.drop(1).firstOrNull()
-            ?: error("Email is required: reset-password user@example.com")
-        val user = users.findByEmail(email) ?: error("User not found: $email")
-        val password = randomPassword()
+        if (!args.sourceArgs.firstOrNull().equals(other = "reset-password"))
+            return
+        val email: String = args.nonOptionArgs.drop(n = 1).firstOrNull()
+            ?: error(message = "Email is required: reset-password user@example.com")
+        val user: User = users.findByEmail(email) ?: error("User not found: $email")
+        val password: String = randomPassword()
         users.updatePassword(user.id, encoder.encode(password))
-        println("""Password for user ${user.email} has been reset to: "$password"""")
-        exitProcess(0)
+        println(message = "Password for user ${user.email} has been reset to: '$password'")
+        exitProcess(status = 0)
     }
 
     private fun randomPassword(): String {
         val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-        return (1..16).map { chars[Random.nextInt(chars.length)] }.joinToString("")
+        return (1..16).map { chars[Random.nextInt(chars.length)] }.joinToString(separator = "")
     }
 }

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourcePerFileMappings">
+    <file url="file://$PROJECT_DIR$/src/main/kotlin/com/github/senocak/analog/repository/NavigationRepository.kt" value="275cbc87-db79-4a1b-8250-c1ce73b677b2" />
     <file url="file://$PROJECT_DIR$/src/main/kotlin/com/github/senocak/analog/repository/PostRepository.kt" value="275cbc87-db79-4a1b-8250-c1ce73b677b2" />
     <file url="file://$PROJECT_DIR$/src/main/kotlin/com/github/senocak/analog/repository/TagRepository.kt" value="275cbc87-db79-4a1b-8250-c1ce73b677b2" />
     <file url="file://$PROJECT_DIR$/src/main/kotlin/com/github/senocak/analog/repository/UserRepository.kt" value="275cbc87-db79-4a1b-8250-c1ce73b677b2" />

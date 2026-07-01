@@ -80,7 +80,7 @@ class PostRepository(
 
     @Transactional
     fun clearExpiredTrashPosts() {
-        val threshold = Instant.now().epochSecond - 86_400L * 30
+        val threshold: Long = Instant.now().epochSecond - 86_400L * 30
         jdbc.update(
             "DELETE FROM post_tags WHERE post_id IN (SELECT id FROM posts WHERE trashed_at != ? AND trashed_at < ?)",
             0,
@@ -92,7 +92,7 @@ class PostRepository(
     @Transactional(readOnly = true)
     fun previous(id: String): Post? =
         queryOne(
-            """
+            sql = """
             SELECT ${selectColumns()}
             FROM posts p
             JOIN users u ON p.author_id = u.id
@@ -139,7 +139,7 @@ class PostRepository(
 
     @Transactional(readOnly = true)
     fun count(query: ListPostsQuery): Int {
-        val (whereSql, args) = build(query)
+        val (whereSql: String, args: MutableList<Any>) = build(query = query)
         return jdbc.queryForObject(
             "SELECT COUNT(*) FROM posts p JOIN users u ON p.author_id = u.id $whereSql",
             Int::class.java,
@@ -173,9 +173,9 @@ class PostRepository(
 
     @Transactional(readOnly = true)
     fun list(query: ListPostsQuery): List<Post> {
-        val (whereSql, args) = build(query)
-        val pagingArgs = args.toMutableList()
-        val sql = StringBuilder("SELECT ${selectColumns()} FROM posts p JOIN users u ON p.author_id = u.id ")
+        val (whereSql: String, args: MutableList<Any>) = build(query = query)
+        val pagingArgs: MutableList<Any> = args.toMutableList()
+        val sql: StringBuilder = StringBuilder("SELECT ${selectColumns()} FROM posts p JOIN users u ON p.author_id = u.id ")
             .append(whereSql)
             .append(" ORDER BY p.pinned_at DESC, p.published_at DESC, p.created_at DESC")
         if (query.limit > 0 && query.offset >= 0) {
@@ -186,20 +186,20 @@ class PostRepository(
             sql.append(" LIMIT ?")
             pagingArgs += query.limit
         }
-        return jdbc.query(sql.toString(), { rs, _ -> mapPost(rs) }, *pagingArgs.toTypedArray())
+        return jdbc.query(sql.toString(), { rs: ResultSet, _: Int -> mapPost(rs = rs) }, *pagingArgs.toTypedArray())
     }
 
     @Transactional(readOnly = true)
     fun findById(id: String): Post? =
         queryOne(
-            "SELECT ${selectColumns()} FROM posts p JOIN users u ON p.author_id = u.id WHERE p.id = ? AND p.trashed_at = 0",
+            sql = "SELECT ${selectColumns()} FROM posts p JOIN users u ON p.author_id = u.id WHERE p.id = ? AND p.trashed_at = 0",
             id,
         )
 
     @Transactional(readOnly = true)
     fun findBySlug(slug: String): Post? =
         queryOne(
-            "SELECT ${selectColumns()} FROM posts p JOIN users u ON p.author_id = u.id WHERE p.slug = ? AND p.trashed_at = 0",
+            sql = "SELECT ${selectColumns()} FROM posts p JOIN users u ON p.author_id = u.id WHERE p.slug = ? AND p.trashed_at = 0",
             slug,
         )
 
@@ -230,13 +230,13 @@ class PostRepository(
 
     private fun queryOne(sql: String, vararg args: Any): Post? =
         try {
-            jdbc.queryForObject(sql, { rs, _ -> mapPost(rs) }, *args)
+            jdbc.queryForObject(sql, { rs: ResultSet, _: Int -> mapPost(rs) }, *args)
         } catch (_: EmptyResultDataAccessException) {
             null
         }
 
     private fun build(query: ListPostsQuery): Pair<String, MutableList<Any>> {
-        val args = mutableListOf<Any>()
+        val args: MutableList<Any> = mutableListOf<Any>()
         val sql = StringBuilder()
         if (query.tagId.isNotBlank()) sql.append(" JOIN post_tags pt ON p.id = pt.post_id")
         sql.append(" WHERE 1 = 1")
@@ -257,11 +257,11 @@ class PostRepository(
             args += "%${query.query}%"
             args += "%${query.query}%"
         }
-        query.isPublished?.let {
+        query.isPublished?.let { it: Boolean ->
             sql.append(if (it) " AND p.published_at <= ?" else " AND p.published_at > ?")
             args += Instant.now().epochSecond
         }
-        query.isTrashed?.let {
+        query.isTrashed?.let { it: Boolean ->
             sql.append(if (it) " AND p.trashed_at != 0" else " AND p.trashed_at = 0")
         }
         if (query.visibilities.isNotEmpty()) {

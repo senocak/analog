@@ -8,6 +8,8 @@ server:
 spring:
   application:
     name: analog
+  main:
+    banner-mode: log
   datasource:
     url: jdbc:sqlite:db.sqlite
     driver-class-name: org.sqlite.JDBC

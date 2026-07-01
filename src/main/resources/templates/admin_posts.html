@@ -1,0 +1,46 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: adminPage('Posts', ~{::content})}">
+<body>
+  <div th:fragment="content">
+    <a class="ts-button" th:href="@{/admin/post/create}">Create post</a>
+    <div class="ts-wrap has-top-spaced">
+      <a th:classappend="${currentVisibility == ''} ? 'is-active' : ''" th:href="@{/admin/posts}">All <span th:text="${counts.nonTrash}">0</span></a>
+      <a th:classappend="${currentVisibility == 'public'} ? 'is-active' : ''" href="?visibility=public">Public <span th:text="${counts.public}">0</span></a>
+      <a th:classappend="${currentVisibility == 'draft'} ? 'is-active' : ''" href="?visibility=draft">Draft <span th:text="${counts.draft}">0</span></a>
+      <a th:classappend="${currentVisibility == 'private'} ? 'is-active' : ''" href="?visibility=private">Private <span th:text="${counts.private}">0</span></a>
+      <a th:classappend="${currentVisibility == 'password'} ? 'is-active' : ''" href="?visibility=password">Password <span th:text="${counts.password}">0</span></a>
+      <a th:classappend="${currentVisibility == 'trash'} ? 'is-active' : ''" href="?visibility=trash">Trash <span th:text="${counts.trash}">0</span></a>
+    </div>
+
+    <table class="ts-table is-celled has-top-spaced">
+      <thead>
+        <tr><th>Title</th><th>Author</th><th>Date</th><th></th></tr>
+      </thead>
+      <tbody>
+        <tr th:each="post : ${posts}">
+          <td th:text="${post.title}">Title</td>
+          <td th:text="${post.author.nickname}">Author</td>
+          <td th:text="${utils.date(post.publishedAt)}">Date</td>
+          <td>
+            <form method="POST" th:action="@{/admin/post/{id}/trash(id=${utils.u(post.id)})}" th:if="${post.trashedAt == 0}">
+              <a class="ts-button is-small" th:href="@{/admin/post/{id}(id=${utils.u(post.id)})}">Edit</a>
+              <a class="ts-button is-small" th:href="@{/post/{slug}(slug=${utils.u(post.slug)})}">View</a>
+              <button class="ts-button is-small">Trash</button>
+            </form>
+            <form method="POST" th:action="@{/admin/post/{id}/untrash(id=${utils.u(post.id)})}" th:if="${post.trashedAt > 0}">
+              <button class="ts-button is-small">Untrash</button>
+              <button class="ts-button is-small is-negative" th:formaction="@{/admin/post/{id}/delete(id=${utils.u(post.id)})}">Delete</button>
+            </form>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="ts-pagination has-top-spaced" th:if="${pagination.totalPages > 1}">
+      <a class="item" th:href="'?' + ${pagination.query} + 'page=' + ${T(java.lang.Math).max(1, pagination.currentPage - 1)}">Prev</a>
+      <span class="item is-active" th:text="${pagination.currentPage} + ' / ' + ${pagination.totalPages}">1 / 1</span>
+      <a class="item" th:href="'?' + ${pagination.query} + 'page=' + ${T(java.lang.Math).min(pagination.totalPages, pagination.currentPage + 1)}">Next</a>
+    </div>
+  </div>
+</body>
+</html>

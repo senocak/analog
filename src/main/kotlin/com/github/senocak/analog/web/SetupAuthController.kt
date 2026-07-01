@@ -4,10 +4,10 @@ import com.github.senocak.analog.domain.PostWrite
 import com.github.senocak.analog.domain.AnalogConfig
 import com.github.senocak.analog.domain.User
 import com.github.senocak.analog.domain.Visibility
+import com.github.senocak.analog.domain.locales
 import com.github.senocak.analog.repository.PostRepository
 import com.github.senocak.analog.repository.UserRepository
 import com.github.senocak.analog.service.ConfigService
-import com.github.senocak.analog.service.HtmlRenderer
 import com.github.senocak.analog.service.SessionService
 import jakarta.servlet.http.HttpSession
 import jakarta.validation.Valid
@@ -16,6 +16,7 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Controller
+import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PostMapping
@@ -31,15 +32,23 @@ class SetupAuthController(
     private val users: UserRepository,
     private val posts: PostRepository,
     private val sessions: SessionService,
-    private val html: HtmlRenderer,
     private val encoder: BCryptPasswordEncoder,
 ) {
+
+    @ModelAttribute
+    fun addCommonAttributes(model: Model) {
+        configService.current()?.let { model.addAttribute("config", it) }
+    }
+
     @GetMapping("/wizard")
-    fun wizard(session: HttpSession): ResponseEntity<String> {
+    fun wizard(session: HttpSession, model: Model): String {
         if (configService.current() != null) {
-            return htmlResponse("""<meta http-equiv="refresh" content="0;url=/admin">""")
+            return "redirect:/admin"
         }
-        return htmlResponse(html.wizard(sessions.message(session)))
+        model.addAttribute("locales", locales)
+        model.addAttribute("defaultLocale", "en-us")
+        model.addAttribute("message", sessions.message(session))
+        return "wizard"
     }
 
     @PostMapping("/wizard", consumes = ["application/x-www-form-urlencoded"])
@@ -54,13 +63,15 @@ class SetupAuthController(
     }
 
     @GetMapping("/login")
-    fun login(session: HttpSession): ResponseEntity<String> {
+    fun login(session: HttpSession, model: Model): String {
         val self = sessions.currentUser(session)
         if (self != null) {
-            return htmlResponse("""<meta http-equiv="refresh" content="0;url=/admin/posts">""")
+            return "redirect:/admin/posts"
         }
         val config = configService.current() ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
-        return htmlResponse(html.login(config, sessions.message(session)))
+        model.addAttribute("config", config)
+        model.addAttribute("message", sessions.message(session))
+        return "login"
     }
 
     @PostMapping("/login", consumes = ["application/x-www-form-urlencoded"])
@@ -135,7 +146,4 @@ class SetupAuthController(
         sessions.login(session, user.id)
         return user
     }
-
-    private fun htmlResponse(body: String): ResponseEntity<String> =
-        ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(body)
 }

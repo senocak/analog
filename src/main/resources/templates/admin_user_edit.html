@@ -1,0 +1,31 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: adminPage('Edit User', ~{::content})}">
+<body>
+  <div th:fragment="content">
+    <form method="POST" class="ts-box">
+      <div class="ts-content is-padded">
+        <label class="ts-text is-label">Email</label>
+        <div class="ts-input"><input type="email" name="email" th:value="${user.email}"></div>
+        <label class="ts-text is-label">Nickname</label>
+        <div class="ts-input"><input type="text" name="nickname" th:value="${user.nickname}"></div>
+        <label class="ts-text is-label">New password</label>
+        <div class="ts-input"><input type="password" name="password"></div>
+        <label class="ts-text is-label">Bio</label>
+        <textarea class="ts-input" name="bio" th:text="${user.bio}"></textarea>
+        <button class="ts-button has-top-spaced">Save</button>
+      </div>
+    </form>
+
+    <form method="POST" th:action="@{/admin/user/{id}/delete(id=${user.id})}" class="ts-box has-top-spaced" th:if="${#lists.size(users) > 1 and user.id != self.id}">
+      <div class="ts-content is-padded">
+        <p th:text="'Delete this user. Existing posts: ' + ${postCount}">Posts</p>
+        <select name="transfer_to_id">
+          <option value="">Delete posts</option>
+          <option th:each="u : ${users}" th:if="${u.id != user.id}" th:value="${u.id}" th:text="${u.nickname}">User</option>
+        </select>
+        <button class="ts-button is-negative has-top-spaced">Delete user</button>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

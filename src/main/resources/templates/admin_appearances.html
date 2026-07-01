@@ -1,0 +1,63 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: adminPage('Appearances', ~{::content})}">
+<body>
+  <div th:fragment="content">
+    <form method="POST" class="ts-box">
+      <div class="ts-content is-padded">
+        <label class="ts-text is-label has-top-spaced">Color scheme</label>
+        <div class="ts-select">
+          <select name="color_scheme">
+            <option value="" th:selected="${config.colorScheme.value == ''}">Auto</option>
+            <option value="light" th:selected="${config.colorScheme.value == 'light'}">Light</option>
+            <option value="dark" th:selected="${config.colorScheme.value == 'dark'}">Dark</option>
+          </select>
+        </div>
+        <label class="ts-text is-label has-top-spaced">Container width</label>
+        <div class="ts-select">
+          <select name="container_width">
+            <option value="small" th:selected="${config.containerWidth == 'small'}">Small</option>
+            <option value="medium" th:selected="${config.containerWidth == 'medium'}">Medium</option>
+            <option value="large" th:selected="${config.containerWidth == 'large'}">Large</option>
+          </select>
+        </div>
+        <label class="ts-text is-label has-top-spaced">Font family</label>
+        <div class="ts-select">
+          <select name="font_family">
+            <option value="sans" th:selected="${config.fontFamily.value == 'sans'}">Sans</option>
+            <option value="serif" th:selected="${config.fontFamily.value == 'serif'}">Serif</option>
+          </select>
+        </div>
+        <label class="ts-text is-label has-top-spaced">Font size</label>
+        <div class="ts-select">
+          <select name="font_size">
+            <option value="small" th:selected="${config.fontSize == 'small'}">Small</option>
+            <option value="medium" th:selected="${config.fontSize == 'medium'}">Medium</option>
+            <option value="large" th:selected="${config.fontSize == 'large'}">Large</option>
+          </select>
+        </div>
+        <label class="ts-text is-label has-top-spaced">Posts per page</label>
+        <div class="ts-input"><input type="number" name="posts_per_page" th:value="${config.postsPerPage}"></div>
+        <label class="ts-text is-label has-top-spaced">Footer text</label>
+        <textarea class="ts-input" name="footer_text" th:text="${config.footerText}"></textarea>
+        <label class="ts-text is-label has-top-spaced">Theme</label>
+        <div class="ts-select">
+          <select name="theme">
+            <option th:each="theme : ${themes}" th:value="${theme}" th:text="${theme}" th:selected="${theme == config.theme}"></option>
+          </select>
+        </div>
+        <button class="ts-button has-top-spaced">Save</button>
+      </div>
+    </form>
+
+    <form method="POST" th:action="@{/admin/appearances/injected}" class="ts-box has-top-spaced">
+      <div class="ts-content is-padded">
+        <label>Injected head</label>
+        <textarea class="ts-input" name="injected_head" th:text="${config.injectedHead}"></textarea>
+        <label>Injected foot</label>
+        <textarea class="ts-input" name="injected_foot" th:text="${config.injectedFoot}"></textarea>
+        <button class="ts-button has-top-spaced">Save injected code</button>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

@@ -1,0 +1,26 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: document_head(${config.name})}"></head>
+<body>
+  <form method="POST" class="ts-app-center">
+    <div class="content" style="width: 300px">
+      <a class="ts-header is-large is-heavy is-undecorated" th:href="@{/}" th:text="${config.name}">Analog</a>
+      <div class="ts-notice has-top-spaced" th:if="${message != null and message != ''}">
+        <div class="content" th:text="${message}">Message</div>
+      </div>
+      <div class="ts-box has-top-spaced-large">
+        <div class="ts-content is-padded">
+          <label class="ts-text is-label has-top-spaced">Email</label>
+          <div class="ts-input"><input type="email" name="email" value=""></div>
+          <label class="ts-text is-label has-top-spaced">Password</label>
+          <div class="ts-input"><input type="password" name="password" value=""></div>
+          <div class="ts-grid has-top-spaced">
+            <div class="column"><a class="ts-button is-ghost" th:href="@{/}">Back</a></div>
+            <div class="column is-fluid"><button class="ts-button is-fluid" type="submit">Login</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</body>
+</html>

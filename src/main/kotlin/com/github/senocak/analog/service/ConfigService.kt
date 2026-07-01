@@ -2,22 +2,24 @@ package com.github.senocak.analog.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.senocak.analog.domain.AnalogConfig
-import jakarta.annotation.PostConstruct
 import org.springframework.stereotype.Service
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.stream.Stream
 import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
 import kotlin.io.path.name
+import org.springframework.boot.context.event.ApplicationReadyEvent
+import org.springframework.context.event.EventListener
 
 @Service
 class ConfigService(private val mapper: ObjectMapper) {
-    private val configFile = Path.of("config.json")
-    private val dataDir = Path.of("data")
+    private val configFile: Path = Path.of("config.json")
+    private val dataDir: Path = Path.of("data")
     @Volatile
     private var config: AnalogConfig? = null
 
-    @PostConstruct
+    @EventListener(value = [ApplicationReadyEvent::class])
     fun initialize() {
         Files.createDirectories(dataDir.resolve("uploads/images"))
         Files.createDirectories(dataDir.resolve("uploads/covers"))
@@ -38,14 +40,15 @@ class ConfigService(private val mapper: ObjectMapper) {
     }
 
     fun save() {
-        val current = config ?: return
+        val current: AnalogConfig = config ?: return
         mapper.writerWithDefaultPrettyPrinter().writeValue(configFile.toFile(), current)
     }
 
     fun themes(): List<String> {
-        val themesDir = dataDir.resolve("themes")
-        if (!themesDir.exists()) return emptyList()
-        return Files.list(themesDir).use { paths ->
+        val themesDir: Path = dataDir.resolve("themes")
+        if (!themesDir.exists())
+            return emptyList()
+        return Files.list(themesDir).use { paths: Stream<Path> ->
             paths.filter { it.isDirectory() }.map { it.name }.sorted().toList()
         }
     }
@@ -53,9 +56,10 @@ class ConfigService(private val mapper: ObjectMapper) {
     fun themeExists(theme: String): Boolean = theme in themes()
 
     private fun ensureDefaultTheme() {
-        val defaultTheme = dataDir.resolve("themes/default")
-        if (defaultTheme.exists()) return
-        val source = Path.of("system/themes/default")
+        val defaultTheme: Path = dataDir.resolve("themes/default")
+        if (defaultTheme.exists())
+            return
+        val source: Path = Path.of("system/themes/default")
         if (!source.exists()) {
             Files.createDirectories(defaultTheme.resolve("assets"))
             Files.writeString(
@@ -66,8 +70,8 @@ class ConfigService(private val mapper: ObjectMapper) {
             return
         }
         Files.walk(source).use { paths ->
-            paths.forEach { path ->
-                val target = defaultTheme.resolve(source.relativize(path).toString())
+            paths.forEach { path: Path ->
+                val target: Path = defaultTheme.resolve(source.relativize(path).toString())
                 if (Files.isDirectory(path)) {
                     Files.createDirectories(target)
                 } else {

@@ -1,0 +1,35 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: adminPage('Users', ~{::content})}">
+<body>
+  <div th:fragment="content">
+    <form method="POST" class="ts-box">
+      <div class="ts-content is-padded">
+        <label class="ts-text is-label has-top-spaced">Email</label>
+        <div class="ts-input"><input type="email" name="email" value=""></div>
+        <label class="ts-text is-label has-top-spaced">Password</label>
+        <div class="ts-input"><input type="password" name="password" value=""></div>
+        <button class="ts-button has-top-spaced">Create</button>
+      </div>
+    </form>
+    
+    <table class="ts-table is-celled has-top-spaced">
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Nickname</th>
+          <th>Created</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="user : ${users}">
+          <td th:text="${user.email}">Email</td>
+          <td th:text="${user.nickname}">Nickname</td>
+          <td th:text="${utils.date(user.createdAt)}">Created</td>
+          <td><a class="ts-button is-small" th:href="@{/admin/user/{id}(id=${utils.u(user.id)})}">Edit</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

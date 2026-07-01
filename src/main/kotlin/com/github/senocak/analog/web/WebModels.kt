@@ -17,7 +17,7 @@ data class WizardRequest(
     @field:NotBlank @field:Email var email: String = "",
     @field:NotBlank @field:Size(max = 128) var password: String = "",
     @field:NotBlank @field:Size(max = 32) var nickname: String = "",
-    @field:Min(-43_200) @field:Max(50_400) var timezone: Int = 0,
+    @field:Min(value = -43_200) @field:Max(value = 50_400) var timezone: Int = 0,
     @field:NotBlank var locale: String = "en-us",
 )
 
@@ -57,24 +57,24 @@ data class NavigationCreateRequest(
 )
 
 data class NavigationEditRequest(
-    @field:BindParam("name[]") var name: List<String> = emptyList(),
-    @field:BindParam("url[]") var url: List<String> = emptyList(),
-    @field:BindParam("sequence[]") var sequence: List<Int> = emptyList(),
-    @field:BindParam("is_deleted[]") var isDeleted: List<Boolean> = emptyList(),
+    @field:BindParam(value = "name[]") var name: List<String> = emptyList(),
+    @field:BindParam(value = "url[]") var url: List<String> = emptyList(),
+    @field:BindParam(value = "sequence[]") var sequence: List<Int> = emptyList(),
+    @field:BindParam(value = "is_deleted[]") var isDeleted: List<Boolean> = emptyList(),
 )
 
 data class PostCreateRequest(
     @field:NotBlank @field:Size(max = 128) var title: String = "",
     @field:NotBlank var slug: String = "",
     var excerpt: String = "",
-    @field:BindParam("author_id")
+    @field:BindParam(value = "author_id")
     @field:NotBlank var authorId: String = "",
     @field:Size(max = 128) var password: String = "",
     var visibility: Visibility = Visibility.PUBLIC,
     var content: String = "",
-    @field:BindParam("published_at")
+    @field:BindParam(value = "published_at")
     var publishedAt: Long = 0,
-    @field:BindParam("is_pinned")
+    @field:BindParam(value = "is_pinned")
     var isPinned: Boolean = false,
     var tags: String = "",
 )
@@ -83,16 +83,16 @@ data class PostEditRequest(
     @field:NotBlank @field:Size(max = 128) var title: String = "",
     @field:NotBlank var slug: String = "",
     var excerpt: String = "",
-    @field:BindParam("author_id")
+    @field:BindParam(value = "author_id")
     @field:NotBlank var authorId: String = "",
     @field:Size(max = 128) var password: String = "",
     var visibility: Visibility = Visibility.PUBLIC,
     var content: String = "",
-    @field:BindParam("published_at")
+    @field:BindParam(value = "published_at")
     var publishedAt: Long = 0,
-    @field:BindParam("is_pinned")
+    @field:BindParam(value = "is_pinned")
     var isPinned: Boolean = false,
-    @field:BindParam("is_clear_cover")
+    @field:BindParam(value = "is_clear_cover")
     var isClearCover: Boolean = false,
     var tags: String = "",
 )
@@ -100,48 +100,48 @@ data class PostEditRequest(
 data class SettingsEditRequest(
     @field:NotBlank @field:Size(max = 64) var name: String = "",
     @field:NotBlank @field:Size(max = 128) var description: String = "",
-    @field:BindParam("is_public")
+    @field:BindParam(value = "is_public")
     var isPublic: Boolean = false,
-    @field:Min(-43_200) @field:Max(50_400) var timezone: Int = 0,
-    @field:BindParam("date_format")
+    @field:Min(value = -43_200) @field:Max(value = 50_400) var timezone: Int = 0,
+    @field:BindParam(value = "date_format")
     @field:NotBlank var dateFormat: String = "",
-    @field:BindParam("date_format_custom")
+    @field:BindParam(value = "date_format_custom")
     var dateFormatCustom: String = "",
-    @field:BindParam("time_format")
+    @field:BindParam(value = "time_format")
     @field:NotBlank var timeFormat: String = "",
-    @field:BindParam("time_format_custom")
+    @field:BindParam(value = "time_format_custom")
     var timeFormatCustom: String = "",
     @field:NotBlank var locale: String = "en-us",
 )
 
 data class AppearancesEditRequest(
-    @field:BindParam("footer_text")
+    @field:BindParam(value = "footer_text")
     var footerText: String = "",
-    @field:BindParam("color_scheme")
+    @field:BindParam(value = "color_scheme")
     var colorScheme: ColorScheme = ColorScheme.AUTO,
-    @field:BindParam("container_width")
+    @field:BindParam(value = "container_width")
     var containerWidth: String = "medium",
-    @field:BindParam("font_family")
+    @field:BindParam(value = "font_family")
     var fontFamily: FontFamily = FontFamily.SANS,
-    @field:BindParam("font_size")
+    @field:BindParam(value = "font_size")
     var fontSize: String = "medium",
-    @field:BindParam("highlight_js")
+    @field:BindParam(value = "highlight_js")
     var highlightJS: Boolean = false,
-    @field:BindParam("author_block")
+    @field:BindParam(value = "author_block")
     var authorBlock: AuthorBlock = AuthorBlock.START,
-    @field:BindParam("posts_per_page")
-    @field:Min(1) @field:Max(999) var postsPerPage: Int = 10,
+    @field:BindParam(value = "posts_per_page")
+    @field:Min(value = 1) @field:Max(value = 999) var postsPerPage: Int = 10,
     @field:NotBlank var theme: String = "default",
 )
 
 data class AppearancesInjectedRequest(
-    @field:BindParam("injected_head")
+    @field:BindParam(value = "injected_head")
     var injectedHead: String = "",
-    @field:BindParam("injected_foot")
+    @field:BindParam(value = "injected_foot")
     var injectedFoot: String = "",
-    @field:BindParam("injected_post_start")
+    @field:BindParam(value = "injected_post_start")
     var injectedPostStart: String = "",
-    @field:BindParam("injected_post_end")
+    @field:BindParam(value = "injected_post_end")
     var injectedPostEnd: String = "",
 )
 

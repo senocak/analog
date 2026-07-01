@@ -1,0 +1,43 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: adminPage('Tags', ~{::content})}">
+<body>
+  <div th:fragment="content">
+    <form method="POST" class="ts-box">
+      <div class="ts-content is-padded">
+        <label class="ts-text is-label has-top-spaced">Name</label>
+        <div class="ts-input"><input type="text" name="name"></div>
+        <label class="ts-text is-label has-top-spaced">Description</label>
+        <div class="ts-input"><input type="text" name="description"></div>
+        <button class="ts-button has-top-spaced">Create</button>
+      </div>
+    </form>
+
+    <form class="has-top-spaced">
+      <input class="ts-input" name="keyword" th:value="${keyword}" placeholder="Filter tags">
+      <button class="ts-button has-top-spaced-small">Filter</button>
+    </form>
+
+    <table class="ts-table is-celled has-top-spaced">
+      <thead>
+        <tr>
+          <th>Name</th><th>Slug</th><th>Posts</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="tag : ${tags}">
+          <td th:text="${tag.name}">Name</td>
+          <td><a th:href="@{/tag/{slug}(slug=${utils.u(tag.slug)})}" th:text="${tag.slug}">Slug</a></td>
+          <td th:text="${tag.postCount}">0</td>
+          <td><a class="ts-button is-small" th:href="@{/admin/tag/{id}(id=${tag.id})}">Edit</a></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="ts-pagination has-top-spaced" th:if="${pagination.totalPages > 1}">
+      <a class="item" th:href="'?' + ${pagination.query} + 'page=' + ${T(java.lang.Math).max(1, pagination.currentPage - 1)}">Prev</a>
+      <span class="item is-active" th:text="${pagination.currentPage} + ' / ' + ${pagination.totalPages}">1 / 1</span>
+      <a class="item" th:href="'?' + ${pagination.query} + 'page=' + ${T(java.lang.Math).min(pagination.totalPages, pagination.currentPage + 1)}">Next</a>
+    </div>
+  </div>
+</body>
+</html>

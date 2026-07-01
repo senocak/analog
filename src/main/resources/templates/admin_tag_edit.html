@@ -1,0 +1,21 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: adminPage('Edit Tag', ~{::content})}">
+<body>
+  <div th:fragment="content">
+    <form method="POST" class="ts-box">
+      <div class="ts-content is-padded">
+        <label class="ts-text is-label">Name</label>
+        <div class="ts-input"><input type="text" name="name" th:value="${tag.name}"></div>
+        <label class="ts-text is-label">Slug</label>
+        <div class="ts-input"><input type="text" name="slug" th:value="${tag.slug}"></div>
+        <label class="ts-text is-label">Description</label>
+        <textarea class="ts-input" name="description" th:text="${tag.description}"></textarea>
+        <button class="ts-button has-top-spaced">Save</button>
+      </div>
+    </form>
+    <form method="POST" th:action="@{/admin/tag/{id}/delete(id=${tag.id})}" class="has-top-spaced">
+      <button class="ts-button is-negative">Delete tag</button>
+    </form>
+  </div>
+</body>
+</html>

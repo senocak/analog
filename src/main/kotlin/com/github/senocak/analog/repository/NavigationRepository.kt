@@ -1,13 +1,14 @@
 package com.github.senocak.analog.repository
 
 import com.github.senocak.analog.domain.Navigation
+import java.sql.ResultSet
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.stereotype.Repository
 
 @Repository
 class NavigationRepository(private val jdbc: JdbcTemplate) {
-    private val mapper = RowMapper { rs, _ ->
+    private val mapper = RowMapper { rs: ResultSet, _: Int ->
         Navigation(
             id = rs.getString("id"),
             url = rs.getString("url"),

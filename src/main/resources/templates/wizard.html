@@ -1,0 +1,36 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: document_head('Analog')}"></head>
+<body>
+  <form method="POST" class="ts-container is-very-narrow has-vertically-spaced-big">
+    <div class="ts-notice has-top-spaced" th:if="${message != null and message != ''}">
+      <div class="content" th:text="${message}">Message</div>
+    </div>
+    <div class="ts-header is-big is-heavy">Welcome to Analog</div>
+    <div class="ts-text is-secondary">Create the site and first administrator.</div>
+    <div class="ts-box has-top-spaced-large">
+      <div class="ts-content is-padded">
+        <label class="ts-text is-label has-top-spaced">Locale</label>
+        <div class="ts-select">
+          <select name="locale">
+            <option th:each="entry : ${locales}" th:value="${entry.value}" th:text="${entry.key}" th:selected="${entry.value == defaultLocale}"></option>
+          </select>
+        </div>
+        <label class="ts-text is-label has-top-spaced">Site name</label>
+        <div class="ts-input"><input type="text" name="name" value="Analog"></div>
+        <label class="ts-text is-label has-top-spaced">Slogan</label>
+        <div class="ts-input"><input type="text" name="description" value="A simple blog"></div>
+        <input type="hidden" id="timezone-input" name="timezone" value="0" />
+        <label class="ts-text is-label has-top-spaced">Admin email</label>
+        <div class="ts-input"><input type="email" name="email" value="admin@example.com"></div>
+        <label class="ts-text is-label has-top-spaced">Nickname</label>
+        <div class="ts-input"><input type="text" name="nickname" value="Admin"></div>
+        <label class="ts-text is-label has-top-spaced">Password</label>
+        <div class="ts-input"><input type="password" name="password" value="admin"></div>
+        <button class="ts-button has-top-spaced-large" type="submit">Finish setup</button>
+      </div>
+    </div>
+  </form>
+  <script>document.getElementById('timezone-input').value = new Date().getTimezoneOffset() * -60</script>
+</body>
+</html>

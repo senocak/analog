@@ -19,7 +19,7 @@ class SessionService(private val users: UserRepository) {
     }
 
     fun message(session: HttpSession): String {
-        val value = session.getAttribute(KEY_MESSAGE) as? String ?: return ""
+        val value: String = session.getAttribute(KEY_MESSAGE) as? String ?: return ""
         session.removeAttribute(KEY_MESSAGE)
         return value
     }

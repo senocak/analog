@@ -1,0 +1,45 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: adminPage('Navigations', ~{::content})}">
+<body>
+  <div th:fragment="content">
+    <form method="POST" class="ts-box">
+      <div class="ts-content is-padded">
+        <label class="ts-text is-label has-top-spaced">Name</label>
+        <div class="ts-input"><input type="text" name="name"></div>
+        <label class="ts-text is-label has-top-spaced">URL</label>
+        <div class="ts-input"><input type="url" name="url" value="https://"></div>
+        <button class="ts-button has-top-spaced">Create</button>
+      </div>
+    </form>
+
+    <form method="POST" th:action="@{/admin/navigations/edit}" class="has-top-spaced">
+      <table class="ts-table is-celled has-top-spaced">
+        <thead>
+          <tr><th></th><th>Name</th><th>URL</th><th>Order</th></tr>
+        </thead>
+        <tbody>
+          <tr th:each="nav, iterStat : ${navigations}">
+            <td>
+              <input type="checkbox" th:id="'del_' + ${iterStat.index}" class="del-cb">
+            </td>
+            <td>
+              <input type="hidden" name="is_deleted[]" value="false" th:id="'delh_' + ${iterStat.index}">
+              <input type="text" name="name[]" th:value="${nav.name}">
+            </td>
+            <td><input type="text" name="url[]" th:value="${nav.url}"></td>
+            <td><input type="number" name="sequence[]" th:value="${nav.sequence}"></td>
+          </tr>
+        </tbody>
+      </table>
+      <button type="submit" class="ts-button has-top-spaced">Save</button>
+      <script>
+        document.querySelectorAll('.del-cb').forEach(function(cb) {
+          cb.addEventListener('change', function() {
+            document.getElementById(this.id.replace('del_', 'delh_')).value = this.checked ? 'true' : 'false';
+          });
+        });
+      </script>
+    </form>
+  </div>
+</body>
+</html>

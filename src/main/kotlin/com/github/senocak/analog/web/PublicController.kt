@@ -1,8 +1,11 @@
 package com.github.senocak.analog.web
 
+import com.github.senocak.analog.domain.AnalogConfig
 import com.github.senocak.analog.domain.IndexFilter
 import com.github.senocak.analog.domain.ListPostsQuery
 import com.github.senocak.analog.domain.Post
+import com.github.senocak.analog.domain.Tag
+import com.github.senocak.analog.domain.User
 import com.github.senocak.analog.domain.Visibility
 import com.github.senocak.analog.repository.NavigationRepository
 import com.github.senocak.analog.repository.PostRepository
@@ -11,8 +14,8 @@ import com.github.senocak.analog.repository.UserRepository
 import com.github.senocak.analog.service.BlogService
 import com.github.senocak.analog.service.ConfigService
 import com.github.senocak.analog.service.FileStorageService
-import com.github.senocak.analog.service.HtmlRenderer
 import com.github.senocak.analog.service.SessionService
+import com.github.senocak.analog.service.TemplateUtils
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpSession
 import org.springframework.core.io.Resource
@@ -20,11 +23,14 @@ import org.springframework.http.CacheControl
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.stereotype.Controller
+import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.server.ResponseStatusException
 import java.nio.file.Path
 import java.time.Instant
@@ -32,7 +38,7 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
 
-@RestController
+@Controller
 class PublicController(
     blog: BlogService,
     private val config: ConfigService,
@@ -42,20 +48,28 @@ class PublicController(
     private val navigations: NavigationRepository,
     private val sessions: SessionService,
     private val files: FileStorageService,
-    private val html: HtmlRenderer,
+    private val utils: TemplateUtils,
 ) : BaseController(blog) {
-    @GetMapping("/")
-    fun index(
-        request: HttpServletRequest,
-        session: HttpSession,
+
+    @ModelAttribute
+    fun addCommonAttributes(model: Model, session: HttpSession) {
+        config.current()?.let { model.addAttribute("config", it) }
+        model.addAttribute("self", sessions.currentUser(session = session))
+        model.addAttribute("utils", utils)
+    }
+
+    @GetMapping(value = ["/"])
+    fun index(request: HttpServletRequest, session: HttpSession, model: Model,
         @RequestParam(required = false) page: Int?,
         @RequestParam(required = false, defaultValue = "") title: String,
-    ): ResponseEntity<String> = listPublicPosts(request, session, page, title)
+    ): String {
+        listPublicPosts(request = request, session = session, model = model, requestedPage = page, title = title)
+        return "index"
+    }
 
-    @GetMapping("/tag/{tagSlug}", "/author/{authorId}", "/archive/{year}", "/archive/{year}/{month}", "/archive/{year}/{month}/{day}")
-    fun filteredIndex(
-        request: HttpServletRequest,
-        session: HttpSession,
+    @GetMapping(value = ["/tag/{tagSlug}", "/author/{authorId}", "/archive/{year}",
+        "/archive/{year}/{month}", "/archive/{year}/{month}/{day}"])
+    fun filteredIndex(request: HttpServletRequest, session: HttpSession, model: Model,
         @RequestParam(required = false) page: Int?,
         @RequestParam(required = false, defaultValue = "") title: String,
         @PathVariable(required = false) tagSlug: String?,
@@ -63,26 +77,36 @@ class PublicController(
         @PathVariable(required = false) year: String?,
         @PathVariable(required = false) month: String?,
         @PathVariable(required = false) day: String?,
-    ): ResponseEntity<String> = listPublicPosts(request, session, page, title, tagSlug, authorId, year, month, day)
+    ): String {
+        listPublicPosts(request = request, session = session, model = model, requestedPage = page, title = title,
+            tagSlug = tagSlug, authorId = authorId, year = year, month = month, day = day)
+        return "index"
+    }
 
-    @GetMapping("/post/{slug}")
-    fun post(@PathVariable slug: String, session: HttpSession): ResponseEntity<String> =
-        postBySlug(slug, session, null)
+    @GetMapping(value = ["/post/{slug}"])
+    fun getPost(session: HttpSession, model: Model, @PathVariable slug: String): String {
+        return postBySlug(slug = slug, session = session, model = model, password = null)
+    }
 
-    @PostMapping("/post/{slug}")
-    fun unlockPost(@PathVariable slug: String, @RequestParam password: String?, session: HttpSession): ResponseEntity<String> =
-        postBySlug(slug, session, password)
+    @PostMapping(value = ["/post/{slug}"])
+    fun unlockPost(session: HttpSession, model: Model,
+        @PathVariable slug: String,
+        @RequestParam password: String?,
+    ): String {
+        return postBySlug(slug = slug, session = session, model = model, password = password)
+    }
 
     @GetMapping("/rss.xml", produces = [MediaType.APPLICATION_XML_VALUE])
+    @ResponseBody
     fun rss(request: HttpServletRequest): String {
-        val cfg = config.current() ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
-        val items = posts.list(
+        val cfg: AnalogConfig = config.current() ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+        val items: String = posts.list(query =
             ListPostsQuery(
                 isPublished = true,
                 isTrashed = false,
                 visibilities = listOf(Visibility.PUBLIC),
             ),
-        ).joinToString("") { post ->
+        ).joinToString(separator = "") { post: Post ->
             """
             <item>
               <guid>${sitemapUrl(request, post)}</guid>
@@ -93,7 +117,7 @@ class PublicController(
             </item>
             """.trimIndent()
         }
-        val root = rootUrl(request)
+        val root: String = rootUrl(request)
         return """
             <?xml version="1.0" encoding="UTF-8"?>
             <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
@@ -103,43 +127,50 @@ class PublicController(
                 <link>$root</link>
                 <description><![CDATA[${cfg.description}]]></description>
                 <language>${cfg.locale}</language>
-                <pubDate>${rfc1123(Instant.now().epochSecond)}</pubDate>
+                <pubDate>${rfc1123(epoch = Instant.now().epochSecond)}</pubDate>
                 $items
               </channel>
             </rss>
         """.trimIndent()
     }
 
-    @GetMapping("/sitemap.xml", produces = [MediaType.APPLICATION_XML_VALUE])
+    @GetMapping(value = ["/sitemap.xml"], produces = [MediaType.APPLICATION_XML_VALUE])
+    @ResponseBody
     fun sitemap(request: HttpServletRequest): String {
-        val urls = posts.list(
+        val urls: String = posts.list(query =
             ListPostsQuery(
                 isPublished = true,
                 isTrashed = false,
                 visibilities = listOf(Visibility.PUBLIC),
             ),
-        ).joinToString("") { post ->
-            "<url><loc>${sitemapUrl(request, post)}</loc><lastmod>${ymd(post.updatedAt)}</lastmod></url>"
+        ).joinToString(separator = "") { post: Post ->
+            "<url><loc>${sitemapUrl(request = request, post = post)}</loc><lastmod>${ymd(epoch = post.updatedAt)}</lastmod></url>"
         }
         return """<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">$urls</urlset>"""
     }
 
-    @GetMapping("/assets/{*asset}")
+    @GetMapping(value = ["/assets/{*asset}"])
+    @ResponseBody
     fun themeAsset(@PathVariable asset: String): ResponseEntity<Resource> {
-        val theme = config.current()?.theme ?: "default"
+        val theme: String = config.current()?.theme ?: "default"
         return ResponseEntity.ok()
-            .contentType(mediaType(asset))
+            .contentType(mediaType(path = asset))
             .cacheControl(CacheControl.maxAge(1, TimeUnit.HOURS))
             .body(files.resourceUnder(Path.of("data/themes/$theme/assets"), asset))
     }
 
-    @GetMapping("/uploads/{*path}", "/post/uploads/{*path}", "/admin/uploads/{*path}", "/admin/post/uploads/{*path}")
+    @GetMapping(value = ["/uploads/{*path}", "/post/uploads/{*path}", "/admin/uploads/{*path}", "/admin/post/uploads/{*path}"])
+    @ResponseBody
     fun upload(@PathVariable path: String): ResponseEntity<Resource> =
-        ResponseEntity.ok().contentType(mediaType(path)).body(files.resourceUnder(Path.of("data/uploads"), path))
+        ResponseEntity
+            .ok()
+            .contentType(mediaType(path = path))
+            .body(files.resourceUnder(Path.of("data/uploads"), path))
 
     private fun listPublicPosts(
         request: HttpServletRequest,
         session: HttpSession,
+        model: Model,
         requestedPage: Int?,
         title: String,
         tagSlug: String? = null,
@@ -147,91 +178,79 @@ class PublicController(
         year: String? = null,
         month: String? = null,
         day: String? = null,
-    ): ResponseEntity<String> {
-        val cfg = config.current() ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
-        if (!cfg.isPublic && sessions.currentUser(session) == null) {
+    ) {
+        val cfg: AnalogConfig = config.current() ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+        if (!cfg.isPublic && sessions.currentUser(session = session) == null) {
             throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Site is private")
         }
-        val currentPage = page(requestedPage)
+        val currentPage: Int = page(requestedPage = requestedPage)
         val query = ListPostsQuery(
             offset = (currentPage - 1) * cfg.postsPerPage,
             limit = cfg.postsPerPage,
             title = title,
             isPublished = true,
             isTrashed = false,
-            visibilities = if (sessions.currentUser(session) == null) {
+            visibilities = if (sessions.currentUser(session = session) == null) {
                 listOf(Visibility.PUBLIC, Visibility.PASSWORD)
             } else {
                 listOf(Visibility.PUBLIC, Visibility.PASSWORD, Visibility.PRIVATE)
             },
         )
         var filter = IndexFilter()
-        tagSlug?.let {
-            val tag = tags.findBySlug(it) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+        tagSlug?.let { it: String ->
+            val tag: Tag = tags.findBySlug(slug = it) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
             query.tagId = tag.id
             filter = filter.copy(tag = tag.name)
         }
-        authorId?.let {
-            val user = users.findById(it) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+        authorId?.let { it: String ->
+            val user: User = users.findById(id = it) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
             query.authorId = user.id
             filter = filter.copy(author = user.nickname)
         }
-        year?.let {
+        year?.let { it: String ->
             query.publishedYear = it
             filter = filter.copy(date = it)
         }
-        month?.let {
+        month?.let { it: String ->
             query.publishedMonth = it
             filter = filter.copy(date = "${filter.date}/$it")
         }
-        day?.let {
+        day?.let { it: String ->
             query.publishedDay = it
             filter = filter.copy(date = "${filter.date}/$it")
         }
-        val total = posts.count(query)
-        val filterText = listOfNotNull(
+        val total: Int = posts.count(query = query)
+        val filterText: String = listOfNotNull(
             filter.tag.takeIf { it.isNotBlank() }?.let { "Tag: $it" },
             filter.author.takeIf { it.isNotBlank() }?.let { "Author: $it" },
             filter.date.takeIf { it.isNotBlank() }?.let { "Date: $it" },
-        ).joinToString(" ")
-        return htmlResponse(
-            html.index(
-                config = cfg,
-                posts = posts.list(query),
-                pagination = pagination(request, currentPage, total, cfg.postsPerPage),
-                navigations = navigations.list(),
-                filterText = filterText,
-            ),
-        )
+        ).joinToString(separator = " ")
+        model.addAttribute("posts", posts.list(query))
+        model.addAttribute("pagination", pagination(request, currentPage, total, cfg.postsPerPage))
+        model.addAttribute("navigations", navigations.list())
+        model.addAttribute("filterText", filterText)
+        // config already set by @ModelAttribute
     }
 
-    private fun postBySlug(slug: String, session: HttpSession, password: String?): ResponseEntity<String> {
-        val post = posts.findBySlug(slug) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
-        val self = sessions.currentUser(session)
+    private fun postBySlug(slug: String, session: HttpSession, model: Model, password: String?): String {
+        val post: Post = posts.findBySlug(slug = slug) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+        val self: User? = sessions.currentUser(session = session)
         if (self == null && post.visibility !in listOf(Visibility.PUBLIC, Visibility.PASSWORD)) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND)
         }
         if (self == null && post.publishedAt > Instant.now().epochSecond) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND)
         }
-        val unlocked = self != null || post.visibility == Visibility.PUBLIC || password == post.password
-        val message = if (!unlocked && password != null) "Incorrect password" else ""
-        return htmlResponse(
-            html.post(
-                config = config.current() ?: throw ResponseStatusException(HttpStatus.NOT_FOUND),
-                post = post,
-                navigations = navigations.list(),
-                previous = posts.previous(post.id),
-                next = posts.next(post.id),
-                unlocked = unlocked,
-                self = self,
-                message = message,
-            ),
-        )
+        val unlocked: Boolean = self != null || post.visibility == Visibility.PUBLIC || password == post.password
+        val message: String = if (!unlocked && password != null) "Incorrect password" else ""
+        model.addAttribute("post", post)
+        model.addAttribute("navigations", navigations.list())
+        model.addAttribute("previous", posts.previous(id = post.id))
+        model.addAttribute("next", posts.next(id = post.id))
+        model.addAttribute("unlocked", unlocked)
+        model.addAttribute("message", message)
+        return "post"
     }
-
-    private fun htmlResponse(body: String): ResponseEntity<String> =
-        ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(body)
 
     private fun sitemapUrl(request: HttpServletRequest, post: Post): String = "${rootUrl(request)}/post/${post.slug}"
 

@@ -1,6 +1,7 @@
 package com.github.senocak.analog.repository
 
 import com.github.senocak.analog.domain.User
+import java.sql.ResultSet
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.RowMapper
@@ -8,7 +9,7 @@ import org.springframework.stereotype.Repository
 
 @Repository
 class UserRepository(private val jdbc: JdbcTemplate) {
-    private val mapper = RowMapper { rs, _ ->
+    private val mapper = RowMapper { rs: ResultSet, _: Int ->
         User(
             id = rs.getString("id"),
             email = rs.getString("email"),
@@ -32,10 +33,10 @@ class UserRepository(private val jdbc: JdbcTemplate) {
     }
 
     fun findByEmail(email: String): User? =
-        queryOne("SELECT id, email, nickname, password, bio, created_at FROM users WHERE email = ?", email)
+        queryOne(sql = "SELECT id, email, nickname, password, bio, created_at FROM users WHERE email = ?", email)
 
     fun findById(id: String): User? =
-        queryOne("SELECT id, email, nickname, password, bio, created_at FROM users WHERE id = ?", id)
+        queryOne(sql = "SELECT id, email, nickname, password, bio, created_at FROM users WHERE id = ?", id)
 
     fun nicknameExists(nickname: String): Boolean =
         jdbc.queryForObject("SELECT EXISTS(SELECT 1 FROM users WHERE nickname = ?)", Boolean::class.java, nickname) ?: false

@@ -2,6 +2,7 @@ package com.github.senocak.analog.domain
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonValue
+import java.io.File
 import java.math.BigInteger
 import java.security.MessageDigest
 import java.time.Instant
@@ -9,12 +10,12 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 enum class Visibility(@JsonValue val value: String) {
-    PUBLIC("public"),
-    PRIVATE("private"),
-    PASSWORD("password"),
-    DRAFT("draft"),
-    TRASH("trash"),
-    UNKNOWN("");
+    PUBLIC(value = "public"),
+    PRIVATE(value = "private"),
+    PASSWORD(value = "password"),
+    DRAFT(value = "draft"),
+    TRASH(value = "trash"),
+    UNKNOWN(value = "");
 
     companion object {
         @JsonCreator
@@ -25,9 +26,9 @@ enum class Visibility(@JsonValue val value: String) {
 }
 
 enum class ColorScheme(@JsonValue val value: String) {
-    LIGHT("light"),
-    DARK("dark"),
-    AUTO("");
+    LIGHT(value = "light"),
+    DARK(value = "dark"),
+    AUTO(value = "");
 
     companion object {
         @JsonCreator
@@ -38,8 +39,8 @@ enum class ColorScheme(@JsonValue val value: String) {
 }
 
 enum class FontFamily(@JsonValue val value: String) {
-    SANS("sans"),
-    SERIF("serif");
+    SANS(value = "sans"),
+    SERIF(value = "serif");
 
     companion object {
         @JsonCreator
@@ -50,9 +51,9 @@ enum class FontFamily(@JsonValue val value: String) {
 }
 
 enum class AuthorBlock(@JsonValue val value: String) {
-    NONE("none"),
-    START("start"),
-    END("end");
+    NONE(value = "none"),
+    START(value = "start"),
+    END(value = "end");
 
     companion object {
         @JsonCreator
@@ -74,12 +75,12 @@ data class AnalogConfig(
     var injectedPostStart: String = "",
     var injectedPostEnd: String = "",
     var footerText: String = """Powered by <a href="https://analog.org" target="_blank">Analog</a>""",
-    var colorScheme: com.github.senocak.analog.domain.ColorScheme = _root_ide_package_.com.github.senocak.analog.domain.ColorScheme.AUTO,
+    var colorScheme: ColorScheme = ColorScheme.AUTO,
     var containerWidth: String = "medium",
-    var fontFamily: com.github.senocak.analog.domain.FontFamily = _root_ide_package_.com.github.senocak.analog.domain.FontFamily.SANS,
+    var fontFamily: FontFamily = FontFamily.SANS,
     var fontSize: String = "medium",
     var highlightJS: Boolean = true,
-    var authorBlock: com.github.senocak.analog.domain.AuthorBlock = _root_ide_package_.com.github.senocak.analog.domain.AuthorBlock.START,
+    var authorBlock: AuthorBlock = AuthorBlock.START,
     var postsPerPage: Int = 10,
     var theme: String = "default",
     var locale: String = "en-us",
@@ -98,8 +99,8 @@ data class User(
     val createdAt: Long,
 ) {
     fun gravatar(): String {
-        val digest = MessageDigest.getInstance("MD5").digest(email.toByteArray())
-        return "http://www.gravatar.com/avatar/${BigInteger(1, digest).toString(16).padStart(32, '0')}"
+        val digest: ByteArray? = MessageDigest.getInstance("MD5").digest(email.toByteArray())
+        return "http://www.gravatar.com/avatar/${BigInteger(1, digest).toString(16).padStart(length = 32, padChar = '0')}"
     }
 }
 
@@ -126,31 +127,31 @@ data class Post(
     val originalExcerpt: String,
     val authorId: String,
     val password: String,
-    val visibility: com.github.senocak.analog.domain.Visibility,
+    val visibility: Visibility,
     val content: String,
     val pinnedAt: Long,
     val publishedAt: Long,
     val createdAt: Long,
     val updatedAt: Long,
     val trashedAt: Long,
-    val author: com.github.senocak.analog.domain.User,
-    val tags: List<com.github.senocak.analog.domain.Tag> = emptyList(),
+    val author: User,
+    val tags: List<Tag> = emptyList(),
 ) {
-    fun tagsStr(): String = tags.joinToString(",") { it.name }
+    fun tagsStr(): String = tags.joinToString(separator = ",") { it.name }
     fun tagNames(): List<String> = tags.map { it.name }
-    fun publishedDate(): String = format("yyyy-MM-dd")
-    fun publishedAtIso(): String = format("yyyy-MM-dd'T'HH:mm")
-    fun publishedYear(): String = format("yyyy")
-    fun publishedMonth(): String = format("MM")
-    fun publishedDay(): String = format("dd")
+    fun publishedDate(): String = format(pattern = "yyyy-MM-dd")
+    fun publishedAtIso(): String = format(pattern = "yyyy-MM-dd'T'HH:mm")
+    fun publishedYear(): String = format(pattern = "yyyy")
+    fun publishedMonth(): String = format(pattern = "MM")
+    fun publishedDay(): String = format(pattern = "dd")
     fun isPublished(): Boolean = Instant.now().epochSecond >= publishedAt
-    fun cover(): String = if (java.io.File("data/uploads/covers/$id.jpg").exists()) "uploads/covers/$id.jpg" else ""
+    fun cover(): String = if (File("data/uploads/covers/$id.jpg").exists()) "uploads/covers/$id.jpg" else ""
     fun excerpt(): String =
         originalExcerpt.ifBlank {
-            val stripped = content
-                .replace(Regex("```[\\s\\S]*?```"), "")
-                .replace(Regex("`([^`]*)`"), "$1")
-                .replace(Regex("[#>*_\\-\\[\\]()]"), "")
+            val stripped: String = content
+                .replace(Regex(pattern = "```[\\s\\S]*?```"), replacement = "")
+                .replace(Regex(pattern = "`([^`]*)`"), replacement = "$1")
+                .replace(Regex(pattern = "[#>*_\\-\\[\\]()]"), replacement = "")
                 .trim()
             if (stripped.length > 200) stripped.take(200) + "..." else stripped
         }
@@ -166,7 +167,7 @@ data class PostWrite(
     val excerpt: String,
     val authorId: String,
     val password: String,
-    val visibility: com.github.senocak.analog.domain.Visibility,
+    val visibility: Visibility,
     val content: String,
     val pinnedAt: Long = 0,
     val publishedAt: Long,
@@ -198,7 +199,7 @@ data class ListPostsQuery(
     var tagId: String = "",
     var title: String = "",
     var query: String = "",
-    var visibilities: List<com.github.senocak.analog.domain.Visibility> = emptyList(),
+    var visibilities: List<Visibility> = emptyList(),
     var isPublished: Boolean? = null,
     var isTrashed: Boolean? = null,
     var publishedYear: String = "",

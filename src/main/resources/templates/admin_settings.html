@@ -1,0 +1,34 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: adminPage('Settings', ~{::content})}">
+<body>
+  <div th:fragment="content">
+    <form method="POST" class="ts-box">
+      <div class="ts-content is-padded">
+        <label class="ts-text is-label has-top-spaced">Name</label>
+        <div class="ts-input"><input type="text" name="name" th:value="${config.name}"></div>
+        <label class="ts-text is-label has-top-spaced">Description</label>
+        <div class="ts-input"><input type="text" name="description" th:value="${config.description}"></div>
+        <label><input type="checkbox" name="is_public" value="true" th:checked="${config.isPublic}"> Public site</label>
+        <label class="ts-text is-label has-top-spaced">Timezone</label>
+        <div class="ts-select">
+          <select name="timezone">
+            <option th:each="entry : ${timezones}" th:value="${entry.value}" th:text="${entry.key}" th:selected="${entry.value == config.timezone}"></option>
+          </select>
+        </div>
+        <label class="ts-text is-label has-top-spaced">Locale</label>
+        <div class="ts-select">
+          <select name="locale">
+            <option th:each="entry : ${locales}" th:value="${entry.value}" th:text="${entry.key}" th:selected="${entry.value == config.locale}"></option>
+          </select>
+        </div>
+        <label class="ts-text is-label has-top-spaced">Date format</label>
+        <div class="ts-input"><input type="text" name="date_format" th:value="${config.dateFormat}"></div>
+        <label class="ts-text is-label has-top-spaced">Time format</label>
+        <div class="ts-input"><input type="text" name="time_format" th:value="${config.timeFormat}"></div>
+        <button class="ts-button has-top-spaced">Save</button>
+      </div>
+    </form>
+    <p class="ts-text is-secondary" th:text="'Analog ' + ${version} + ' on Java ' + ${runtime}">Version info</p>
+  </div>
+</body>
+</html>

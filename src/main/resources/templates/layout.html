@@ -1,0 +1,72 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<!-- Document Head Fragment -->
+<head th:fragment="document_head(title)">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title th:text="${title}">Title</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tocas/5.0.1/tocas.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tocas/5.0.1/tocas.min.js"></script>
+  <link rel="stylesheet" th:href="@{/assets/style.css}">
+  <link rel="icon" th:href="@{/favicon.png}" type="image/png">
+</head>
+
+<!-- Public Page Fragment (full HTML document) -->
+<html th:fragment="publicPage(title, content)">
+  <head th:replace="~{layout :: document_head(${title})}"></head>
+  <body>
+    <nav class="ts-content is-tertiary" th:if="${navigations != null and not #lists.isEmpty(navigations)}">
+      <div class="ts-container ts-wrap">
+        <a th:each="nav : ${navigations}" th:href="${nav.url}" th:text="${nav.name}">Link</a>
+      </div>
+    </nav>
+
+    <th:block th:replace="${content}"></th:block>
+
+    <footer class="ts-content" th:if="${config.footerText != null and config.footerText != ''}">
+      <div class="ts-container" th:utext="${config.footerText}">Footer</div>
+    </footer>
+  </body>
+</html>
+
+<!-- Admin Page Fragment (full HTML document) -->
+<html th:fragment="adminPage(title, content)">
+  <head th:replace="~{layout :: document_head(${title})}"></head>
+  <body>
+    <div class="ts-app-layout is-fullscreen is-horizontal">
+      <aside class="cell is-scrollable has-flex-column" style="width:260px">
+        <div class="ts-content">
+          <a class="ts-header is-big is-heavy" th:href="@{/}" th:text="${config.name}">Config Name</a>
+          <div class="ts-text is-description" th:text="'Signed in as ' + ${self.nickname}">Signed in as User</div>
+          <a class="ts-button is-outlined has-top-spaced" th:href="@{/admin/post/create}">Create post</a>
+        </div>
+        <div class="ts-app-sidebar">
+          <a class="item" th:classappend="${active == 'user' ? 'is-active' : ''}" th:href="@{/admin/users}">User</a>
+          <a class="item" th:classappend="${active == 'post' ? 'is-active' : ''}" th:href="@{/admin/posts}">Post</a>
+          <a class="item" th:classappend="${active == 'tag' ? 'is-active' : ''}" th:href="@{/admin/tags}">Tag</a>
+          <a class="item" th:classappend="${active == 'media' ? 'is-active' : ''}" th:href="@{/admin/photos}">Media</a>
+          <a class="item" th:classappend="${active == 'navigation' ? 'is-active' : ''}" th:href="@{/admin/navigations}">Navigation</a>
+          <a class="item" th:classappend="${active == 'settings' ? 'is-active' : ''}" th:href="@{/admin/settings}">Settings</a>
+          <a class="item" th:classappend="${active == 'appearances' ? 'is-active' : ''}" th:href="@{/admin/appearances}">Appearances</a>
+        </div>
+        <div class="ts-content has-top-spaced-auto">
+          <form method="POST" th:action="@{/admin/logout}">
+            <button class="ts-button is-outlined is-fluid">Logout</button>
+          </form>
+        </div>
+      </aside>
+      <main class="cell is-fluid is-secondary is-scrollable">
+        <div class="ts-content">
+          <h1 class="ts-header" th:text="${title}">Title</h1>
+          <div class="ts-notice has-top-spaced" th:if="${message != null and message != ''}">
+            <div class="content" th:text="${message}">Message</div>
+          </div>
+          <th:block th:replace="${content}"></th:block>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>
+
+</html>

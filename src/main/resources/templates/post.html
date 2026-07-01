@@ -1,0 +1,46 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: publicPage(${post.title} + ' - ' + ${config.name}, ~{::content})}">
+<body>
+  <div th:fragment="content">
+    <main class="ts-container has-vertically-spaced-big">
+      <img class="ts-image is-rounded" th:if="${post.cover() != null and post.cover() != ''}" th:src="@{/post/{path}(path=${post.cover()})}" alt="">
+      
+      <div class="ts-meta is-secondary">
+        <span class="item" th:text="${utils.date(post.publishedAt)}">Date</span>
+        <a class="item" th:if="${self != null}" th:href="@{/admin/post/{id}(id=${utils.u(post.id)})}">Edit</a>
+      </div>
+      
+      <h1 class="ts-header is-massive" th:text="${utils.visibilityPrefix(post.visibility)} + ${post.title}">Title</h1>
+      
+      <div th:if="${unlocked}">
+        <article class="has-top-spaced-large" th:utext="${utils.markdown(post.content)}">Content</article>
+        <div class="ts-wrap has-top-spaced-big" th:if="${not #lists.isEmpty(post.tags)}">
+          <a th:each="tag : ${post.tags}" th:href="@{/tag/{slug}(slug=${utils.u(tag.slug)})}" class="ts-badge" th:text="'#' + ${tag.name}">#tag</a>
+        </div>
+      </div>
+      
+      <div th:if="${not unlocked}">
+        <div class="ts-notice has-top-spaced" th:if="${message != null and message != ''}">
+          <div class="content" th:text="${message}">Message</div>
+        </div>
+        <form method="POST" class="ts-box has-top-spaced-large">
+          <div class="ts-content is-padded">
+            <label class="ts-text is-label has-top-spaced">Password</label>
+            <div class="ts-input"><input type="text" name="password" value=""></div>
+            <button class="ts-button has-top-spaced" type="submit">Unlock</button>
+          </div>
+        </form>
+      </div>
+      
+      <div class="ts-grid has-top-spaced-large">
+        <a class="column ts-box" th:if="${next != null}" th:href="@{/post/{slug}(slug=${utils.u(next.slug)})}">
+          <div class="ts-content">Newer<br><b th:text="${next.title}">Newer Post Title</b></div>
+        </a>
+        <a class="column ts-box" th:if="${previous != null}" th:href="@{/post/{slug}(slug=${utils.u(previous.slug)})}">
+          <div class="ts-content">Older<br><b th:text="${previous.title}">Older Post Title</b></div>
+        </a>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

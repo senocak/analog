@@ -1,0 +1,33 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: adminPage('Photos', ~{::content})}">
+<body>
+  <div th:fragment="content">
+    <form method="POST" enctype="multipart/form-data" class="ts-box">
+      <div class="ts-content is-padded">
+        <input type="file" name="photo_file" multiple>
+        <button class="ts-button has-top-spaced">Upload</button>
+      </div>
+    </form>
+
+    <div th:each="group : ${groups}">
+      <h3 class="ts-header has-top-spaced"
+          th:text="${group.year} + ' / ' + ${group.month}">Year / Month</h3>
+      <div class="ts-grid is-4-columns">
+        <div class="column" th:each="file : ${group.filenames}">
+          <img class="ts-image is-rounded" th:src="@{/uploads/images/{year}/{month}/{file}(year=${group.year},month=${group.month},file=${utils.u(file)})}">
+          <form method="POST" th:action="@{/admin/photo/delete}">
+            <input type="hidden" name="path" th:value="${group.year} + '/' + ${group.month} + '/' + ${file}">
+            <button class="ts-button is-small is-negative has-top-spaced-small">Delete</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="ts-pagination has-top-spaced" th:if="${pagination.totalPages > 1}">
+      <a class="item" th:href="'?page=' + ${T(java.lang.Math).max(1, pagination.currentPage - 1)}">Prev</a>
+      <span class="item is-active" th:text="${pagination.currentPage} + ' / ' + ${pagination.totalPages}">1 / 1</span>
+      <a class="item" th:href="'?page=' + ${T(java.lang.Math).min(pagination.totalPages, pagination.currentPage + 1)}">Next</a>
+    </div>
+  </div>
+</body>
+</html>

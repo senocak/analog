@@ -1,0 +1,88 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: adminPage(${post == null ? 'Create Post' : 'Edit Post'}, ~{::content})}">
+<body>
+  <div th:fragment="content">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+
+    <form method="POST" enctype="multipart/form-data" th:action="${post != null} ? @{/admin/post/{id}(id=${post.id})} : @{/admin/post/create}" class="ts-box">
+      <div class="ts-content is-padded">
+        <label class="ts-text is-label has-top-spaced">Title</label>
+        <div class="ts-input"><input type="text" name="title" th:value="${post?.title}"></div>
+
+        <label class="ts-text is-label has-top-spaced">Slug</label>
+        <div class="ts-input"><input type="text" name="slug" th:value="${post?.slug}"></div>
+
+        <label class="ts-text is-label has-top-spaced">Content</label>
+        <textarea id="content" name="content" rows="12" th:text="${post?.content}"></textarea>
+
+        <label class="ts-text is-label has-top-spaced">Excerpt</label>
+        <div id="excerpt-container" class="has-top-spaced">
+          <textarea id="excerpt" name="excerpt" rows="5" th:text="${post?.originalExcerpt}"></textarea>
+        </div>
+
+        <label class="ts-text is-label has-top-spaced">Author</label>
+        <div class="ts-select">
+          <select name="author_id">
+            <option th:each="u : ${users}" th:value="${u.id}" th:text="${u.nickname}" th:selected="${post != null} ? ${u.id == post.authorId} : ${u.id == self.id}"></option>
+          </select>
+        </div>
+
+        <label class="ts-text is-label has-top-spaced">Visibility</label>
+        <div class="ts-select">
+          <select name="visibility">
+            <option value="public" th:selected="${post == null or post.visibility.value == 'public'}">Public</option>
+            <option value="private" th:selected="${post != null and post.visibility.value == 'private'}">Private</option>
+            <option value="password" th:selected="${post != null and post.visibility.value == 'password'}">Password</option>
+            <option value="draft" th:selected="${post != null and post.visibility.value == 'draft'}">Draft</option>
+          </select>
+        </div>
+
+        <label class="ts-text is-label has-top-spaced">Password</label>
+        <div class="ts-input"><input type="text" name="password" th:value="${post?.password}"></div>
+
+        <label class="ts-text is-label has-top-spaced">Published at timestamp</label>
+        <div class="ts-input"><input type="number" name="published_at" th:value="${post != null} ? ${post.publishedAt} : ${#dates.createNow().getTime() / 1000}"></div>
+
+        <label class="ts-text is-label has-top-spaced">Tags</label>
+        <div class="ts-input"><input type="text" name="tags" th:value="${post?.tagsStr()}"></div>
+
+        <label><input type="checkbox" name="is_pinned" value="true" th:checked="${post != null and post.pinnedAt > 0}"> Pinned</label>
+
+        <label class="ts-text is-label has-top-spaced">Cover</label>
+        <input name="cover_file" type="file">
+
+        <div th:if="${post != null and post.cover() != ''}">
+          <img th:src="@{/post/{path}(path=${post.cover()})}" style="max-width: 200px; max-height: 200px;">
+          <label><input type="checkbox" name="is_clear_cover" value="true"> Clear cover</label>
+        </div>
+
+        <button class="ts-button has-top-spaced">Save</button>
+      </div>
+    </form>
+
+    <script>
+      new EasyMDE({
+        element: document.getElementById("content"),
+        spellChecker: false,
+        status: false,
+        toolbar: ["heading", "bold", "italic", "quote", "code", "link", "|", "unordered-list", "ordered-list", "|", "table", "|", "preview"],
+        renderingConfig: { singleLineBreaks: false }
+      });
+      new EasyMDE({
+        element: document.getElementById("excerpt"),
+        spellChecker: false,
+        status: false,
+        minHeight: "120px",
+        toolbar: ["bold", "italic", "link", "|", "preview"],
+        renderingConfig: { singleLineBreaks: false }
+      });
+    </script>
+
+    <p class="ts-text is-secondary" th:if="${not #lists.isEmpty(allTags)}">
+      Existing tags:
+      <span th:each="tag, iterStat : ${allTags}"><span th:if="${!iterStat.first}">, </span><span th:text="${tag.name}">Tag</span></span>
+    </p>
+  </div>
+</body>
+</html>

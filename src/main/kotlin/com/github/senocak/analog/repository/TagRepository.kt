@@ -1,6 +1,8 @@
 package com.github.senocak.analog.repository
 
 import com.github.senocak.analog.domain.Tag
+import java.sql.ResultSet
+import java.sql.SQLException
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.RowMapper
@@ -20,7 +22,7 @@ class TagRepository(private val jdbc: JdbcTemplate) {
     }
 
     fun list(offset: Int, limit: Int, keyword: String): List<Tag> {
-        val sql =
+        val sql: String =
             if (keyword.isNotBlank()) {
                 """
                 SELECT t.id, t.slug, t.name, t.description, t.created_at, COUNT(pt.post_id) AS post_count
@@ -68,7 +70,7 @@ class TagRepository(private val jdbc: JdbcTemplate) {
 
     fun findById(id: String): Tag? =
         queryOne(
-            """
+            sql = """
             SELECT t.id, t.slug, t.name, t.description, t.created_at, COUNT(pt.post_id) AS post_count
             FROM tags t
             LEFT JOIN post_tags pt ON t.id = pt.tag_id
@@ -79,11 +81,12 @@ class TagRepository(private val jdbc: JdbcTemplate) {
         )
 
     fun findBySlug(slug: String): Tag? =
-        queryOne("SELECT id, slug, name, description, created_at, 0 AS post_count FROM tags WHERE slug = ?", slug)
+        queryOne(sql = "SELECT id, slug, name, description, created_at, 0 AS post_count FROM tags WHERE slug = ?", slug)
 
     fun findByNames(names: List<String>): List<Tag> {
-        if (names.isEmpty()) return emptyList()
-        val placeholders = names.joinToString(",") { "?" }
+        if (names.isEmpty())
+            return emptyList()
+        val placeholders: String = names.joinToString(",") { "?" }
         return jdbc.query(
             "SELECT id, slug, name, description, created_at, 0 AS post_count FROM tags WHERE name IN ($placeholders)",
             mapper,
@@ -139,10 +142,10 @@ class TagRepository(private val jdbc: JdbcTemplate) {
             null
         }
 
-    private fun safeInt(rs: java.sql.ResultSet, column: String): Int =
+    private fun safeInt(rs: ResultSet, column: String): Int =
         try {
             rs.getInt(column)
-        } catch (_: java.sql.SQLException) {
+        } catch (_: SQLException) {
             0
         }
 }

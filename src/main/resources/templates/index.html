@@ -1,0 +1,51 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: publicPage(${config.name}, ~{::content})}">
+<body>
+  <div th:fragment="content">
+    <section class="ts-content is-secondary is-center-aligned">
+      <h1 class="ts-header is-massive" th:text="${config.name}">Analog</h1>
+      <p th:text="${config.description}">Slogan</p>
+    </section>
+    
+    <div class="ts-container has-top-spaced" th:if="${filterText != null and filterText != ''}">
+      <div class="ts-notice">
+        <div class="content">
+          <span th:text="${filterText}">Filter Text</span>
+          <a th:href="@{/}">Reset</a>
+        </div>
+      </div>
+    </div>
+    
+    <main class="ts-container has-top-spaced-big">
+      <div class="ts-blankslate" th:if="${#lists.isEmpty(posts)}">
+        <div class="header">No posts found</div>
+      </div>
+      
+      <div th:each="post : ${posts}">
+        <article class="has-bottom-spaced-large">
+          <a class="ts-header is-large is-link is-undecorated"
+             th:href="@{/post/{slug}(slug=${utils.u(post.slug)})}"
+             th:text="${utils.visibilityPrefix(post.visibility)} + ${post.title}">Post Title</a>
+          <div class="ts-text is-secondary has-top-spaced" 
+               th:text="${post.visibility.name() == 'PASSWORD'} ? 'This post is password protected.' : ${post.excerpt()}">
+            Excerpt
+          </div>
+          <div class="ts-meta is-secondary has-top-spaced-small">
+            <a class="item" th:href="@{/archive/{year}/{month}(year=${post.publishedYear()},month=${post.publishedMonth()})}"
+               th:text="${utils.date(post.publishedAt)}">Date</a>
+            <a class="item" th:href="@{/author/{id}(id=${utils.u(post.author.id)})}" th:text="${post.author.nickname}">Author</a>
+          </div>
+        </article>
+        <div class="ts-divider has-vertically-spaced-large"></div>
+      </div>
+      
+      <!-- Pagination -->
+      <div class="ts-pagination has-top-spaced" th:if="${pagination.totalPages > 1}">
+        <a class="item" th:href="'?' + ${pagination.query} + 'page=' + ${T(java.lang.Math).max(1, pagination.currentPage - 1)}">Prev</a>
+        <span class="item is-active" th:text="${pagination.currentPage} + ' / ' + ${pagination.totalPages}">1 / 1</span>
+        <a class="item" th:href="'?' + ${pagination.query} + 'page=' + ${T(java.lang.Math).min(pagination.totalPages, pagination.currentPage + 1)}">Next</a>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
