@@ -55,7 +55,7 @@ class PostRepository(
             post.pinnedAt,
             post.trashedAt,
         )
-        replaceTags(post.id, post.tagIds)
+        replaceTags(postId = post.id, tagIds = post.tagIds)
     }
 
     fun trash(id: String) {
@@ -294,7 +294,7 @@ class PostRepository(
 
     private fun replaceTags(postId: String, tagIds: List<String>) {
         jdbc.update("DELETE FROM post_tags WHERE post_id = ?", postId)
-        tagIds.forEach { tagId ->
+        tagIds.forEach { tagId: String ->
             jdbc.update("INSERT INTO post_tags (post_id, tag_id) VALUES (?, ?)", postId, tagId)
         }
     }

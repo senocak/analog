@@ -156,7 +156,7 @@ class PublicController(
         return ResponseEntity.ok()
             .contentType(mediaType(path = asset))
             .cacheControl(CacheControl.maxAge(1, TimeUnit.HOURS))
-            .body(files.resourceUnder(Path.of("data/themes/$theme/assets"), asset))
+            .body(files.resourceUnder(base = Path.of("data/themes/$theme/assets"), asset))
     }
 
     @GetMapping(value = ["/uploads/{*path}", "/post/uploads/{*path}", "/admin/uploads/{*path}", "/admin/post/uploads/{*path}"])

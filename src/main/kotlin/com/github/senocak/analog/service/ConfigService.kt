@@ -24,7 +24,6 @@ class ConfigService(private val mapper: ObjectMapper) {
         Files.createDirectories(dataDir.resolve("uploads/images"))
         Files.createDirectories(dataDir.resolve("uploads/covers"))
         Files.createDirectories(dataDir.resolve("themes"))
-        ensureDefaultTheme()
         if (configFile.exists()) {
             config = mapper.readValue(configFile.toFile(), AnalogConfig::class.java)
             save()
@@ -54,31 +53,4 @@ class ConfigService(private val mapper: ObjectMapper) {
     }
 
     fun themeExists(theme: String): Boolean = theme in themes()
-
-    private fun ensureDefaultTheme() {
-        val defaultTheme: Path = dataDir.resolve("themes/default")
-        if (defaultTheme.exists())
-            return
-        val source: Path = Path.of("system/themes/default")
-        if (!source.exists()) {
-            Files.createDirectories(defaultTheme.resolve("assets"))
-            Files.writeString(
-                defaultTheme.resolve("index.html"),
-                "<!doctype html><html><body><h1>Analog</h1><div id=\"root\"></div></body></html>",
-            )
-            Files.writeString(defaultTheme.resolve("singular.html"), "<!doctype html><html><body><div id=\"root\"></div></body></html>")
-            return
-        }
-        Files.walk(source).use { paths ->
-            paths.forEach { path: Path ->
-                val target: Path = defaultTheme.resolve(source.relativize(path).toString())
-                if (Files.isDirectory(path)) {
-                    Files.createDirectories(target)
-                } else {
-                    Files.createDirectories(target.parent)
-                    Files.copy(path, target)
-                }
-            }
-        }
-    }
 }
